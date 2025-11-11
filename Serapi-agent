@@ -1,0 +1,41 @@
+import os
+from llama_stack_client import LlamaStackClient, Agent, AgentEventLogger
+
+from tools.serpapi_flights import flights_tool
+
+# Configure your Llama Stack server and SerpApi key
+HOST = "localhost"
+PORT = 8321
+os.environ["SERPAPI_API_KEY"] = "632b30c83cf9823757b2175d670b28c5"
+
+client = LlamaStackClient(base_url=f"http://{HOST}:{PORT}")
+
+# Create the agent with the custom tool
+agent = Agent(
+    client,
+    model="meta-llama/Llama-3.1-8B-Instruct", # Or whichever model you are running
+    instructions="You are a helpful travel assistant. You must use the 'google_flights_search' tool to find flight information based on the user's request.",
+    tools=[flights_tool],
+)
+
+def run_agent(prompt: str):
+    """Runs the agent with a user prompt and prints the results."""
+    print(f"User: {prompt}\n")
+    session_id = agent.create_session("flight-search-session")
+
+    response = agent.create_turn(
+        messages=[{"role": "user", "content": prompt}],
+        session_id=session_id,
+        stream=False,
+    )
+
+    print("Agent Execution Steps:")
+    for log in AgentEventLogger().log(response):
+        print(f"[{log.step.upper()}] {log.content}")
+
+    print("\nFinal Response:")
+    print(response.output_message.content)
+
+if __name__ == "__main__":
+    query_prompt = "Find flights from New York to Paris for September 20, 2025."
+    run_agent(query_prompt)

@@ -1,5 +1,5 @@
 ---
-# Source: ai-agent/templates/pipeline.yaml
+# Source: ai-agent/templates/pipeline.yaml-
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
